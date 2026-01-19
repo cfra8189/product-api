@@ -5,6 +5,9 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 require('./db/connection');
 
+app.use(express.json());
+app.use(require('./routes/productRoutes'));
+
 app.get('/', (req, res) => {
 	res.send('Hello, World!');
 });
