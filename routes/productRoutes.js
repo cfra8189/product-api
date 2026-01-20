@@ -60,4 +60,17 @@ router.put('/api/products/:id', async (req, res) => {
 	}
 });
 
+router.delete('/api/products/:id', async (req, res) => {
+	try {
+		const { id } = req.params;
+		const product = await Product.findByIdAndDelete(id);
+		if (!product) return res.status(404).json({ error: 'Product not found' });
+		return res.json({ message: 'Product deleted' });
+	} catch (err) {
+		if (err.name === 'CastError') return res.status(400).json({ error: 'Invalid product id' });
+		console.error('DELETE /api/products/:id error', err);
+		return res.status(500).json({ error: 'Server error' });
+	}
+});
+
 
