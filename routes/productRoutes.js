@@ -73,4 +73,41 @@ router.delete('/api/products/:id', async (req, res) => {
 	}
 });
 
+router.get('/api/products', async (req, res) => {
+	try {
+		// extract query params
+		const { category, minPrice, maxPrice, sortBy, page = '1', limit = '10' } = req.query;
+
+		// build filter object based on provided params
+		const filter = {};
+		if (category) filter.category = category;
+
+		if (minPrice !== undefined || maxPrice !== undefined) {
+			filter.price = {};
+			const min = Number(minPrice);
+			const max = Number(maxPrice);
+			if (!Number.isNaN(min)) filter.price.$gte = min;
+			if (!Number.isNaN(max)) filter.price.$lte = max;
+			// if price ended up empty, delete it
+			if (Object.keys(filter.price).length === 0) delete filter.price;
+		}
+
+		// determine sort
+		let sort = {};
+		if (sortBy === 'price_asc') sort = { price: 1 };
+		else if (sortBy === 'price_desc') sort = { price: -1 };
+
+		// pagination
+		const pageNum = Math.max(1, parseInt(page, 10) || 1);
+		const lim = Math.max(1, parseInt(limit, 10) || 10);
+		const skip = (pageNum - 1) * lim;
+
+		const products = await Product.find(filter).sort(sort).skip(skip).limit(lim);
+		return res.json(products);
+	} catch (err) {
+		console.error('GET /api/products error', err);
+		return res.status(500).json({ error: 'Server error' });
+	}
+});
+
 
