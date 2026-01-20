@@ -27,4 +27,37 @@ router.post('/api/products', async (req, res) => {
 
 module.exports = router;
 
+router.get('/api/products/:id', async (req, res) => {
+	try {
+		const { id } = req.params;
+		const product = await Product.findById(id);
+		if (!product) return res.status(404).json({ error: 'Product not found' });
+		return res.json(product);
+	} catch (err) {
+		if (err.name === 'CastError') return res.status(400).json({ error: 'Invalid product id' });
+		console.error('GET /api/products/:id error', err);
+		return res.status(500).json({ error: 'Server error' });
+	}
+});
+
+router.put('/api/products/:id', async (req, res) => {
+	try {
+		const { id } = req.params;
+		const updates = req.body;
+
+		const product = await Product.findByIdAndUpdate(id, updates, {
+			new: true,
+			runValidators: true,
+		});
+
+		if (!product) return res.status(404).json({ error: 'Product not found' });
+		return res.json(product);
+	} catch (err) {
+		if (err.name === 'CastError') return res.status(400).json({ error: 'Invalid product id' });
+		if (err.name === 'ValidationError') return res.status(400).json({ error: err.message });
+		console.error('PUT /api/products/:id error', err);
+		return res.status(500).json({ error: 'Server error' });
+	}
+});
+
 
